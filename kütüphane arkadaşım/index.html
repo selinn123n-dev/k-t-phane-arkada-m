@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kütüphane Arkadaşım | Soru - Cevap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Üst Başlık -->
+  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-20">
+    <div class="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div onclick="ekranDegistir('ana')" class="cursor-pointer">
+        <h1 class="text-lg font-bold tracking-tight">📚 Kütüphane Arkadaşım</h1>
+        <p id="masaBilgisi" class="text-xs text-indigo-200">Kütüphane Ortak Çalışma Ağı</p>
+      </div>
+      <button onclick="ekranDegistir('ana')" class="text-xs bg-indigo-500 hover:bg-indigo-400 px-3 py-1.5 rounded-lg font-medium">
+        Ana Ekran
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-xl w-full mx-auto px-4 py-6 flex-1">
+
+    <!-- 1. ANA EKRAN -->
+    <section id="ekran-ana" class="space-y-5">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 text-center">
+        <h2 class="text-xl font-bold text-slate-800">Hoş Geldin! Ne yapmak istersin?</h2>
+        <p class="text-sm text-slate-500 mt-1">
+          Çekinmeden soru sorabilir ya da bildiğin bir dersten arkadaşına yardımcı olabilirsin.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        <button onclick="ekranDegistir('sor')"
+          class="bg-white hover:bg-indigo-50 border-2 border-indigo-600 p-6 rounded-2xl shadow-sm text-left transition flex items-center justify-between group">
+          <div>
+            <span class="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-full mb-2">Yardım İste</span>
+            <h3 class="text-lg font-bold text-slate-900">🙋‍♂️ Soru Sormak İstiyorum</h3>
+            <p class="text-sm text-slate-500 mt-1">Sorunun fotoğrafını çek, dersini seç ve kütüphanedeki arkadaşlarına gönder.</p>
+          </div>
+          <span class="text-2xl text-indigo-600 group-hover:translate-x-1 transition">→</span>
+        </button>
+
+        <button onclick="ekranDegistir('cevapla')"
+          class="bg-white hover:bg-emerald-50 border-2 border-emerald-600 p-6 rounded-2xl shadow-sm text-left transition flex items-center justify-between group">
+          <div>
+            <span class="inline-block bg-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full mb-2">Destek Ol</span>
+            <h3 class="text-lg font-bold text-slate-900">💡 Soru Cevaplamak İstiyorum</h3>
+            <p class="text-sm text-slate-500 mt-1">Açık soruları incele, yapabildiğin dersi seç ve hazır şıklarla teklif gönder.</p>
+          </div>
+          <span class="text-2xl text-emerald-600 group-hover:translate-x-1 transition">→</span>
+        </button>
+      </div>
+
+      <!-- Bu Cihazdan Sorulan Soruların Takibi -->
+      <div id="benimSorularimAlani" class="hidden pt-2 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-600 uppercase tracking-wider">📌 Senin Sorduğun Sorular</h3>
+          <button onclick="kendiSorularimiGoster()" class="text-xs text-indigo-600 font-semibold">Yenile ↻</button>
+        </div>
+        <div id="benimSorularimListesi" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- 2. SORU SORMA EKRANI -->
+    <section id="ekran-sor" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <h2 class="text-lg font-bold text-slate-800">📸 Yeni Soru Sor</h2>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">1. Sorunun Fotoğrafı *</label>
+          <input type="file" id="soruFotoInput" accept="image/*" capture="environment"
+            class="block w-full text-sm text-slate-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-300 rounded-xl p-1.5" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">2. Hangi Ders? *</label>
+          <select id="soruDersInput" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm bg-white">
+            <option value="Matematik">Matematik</option>
+            <option value="Geometri">Geometri</option>
+            <option value="Türkçe / Paragraf">Türkçe / Paragraf</option>
+            <option value="Fizik">Fizik</option>
+            <option value="Kimya">Kimya</option>
+            <option value="Biyoloji">Biyoloji</option>
+            <option value="Tarih / Coğrafya">Tarih / Coğrafya</option>
+            <option value="İngilizce">İngilizce</option>
+            <option value="Programlama / Bilişim">Programlama / Bilişim</option>
+            <option value="Diğer">Diğer</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Ad veya Nickname</label>
+            <input type="text" id="soranNickInput" placeholder="Boşsa Anonim"
+              class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Masa Numaran</label>
+            <input type="text" id="soranMasaInput" placeholder="Örn: Masa 4"
+              class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Kısa Konu Notu (İsteğe Bağlı)</label>
+          <input type="text" id="soruNotInput" maxlength="80" placeholder="Örn: Türev sorusu, son adımda takıldım"
+            class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+        </div>
+
+        <button id="soruGonderBtn" onclick="soruGonder()"
+          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow transition">
+          Soruyu Kütüphaneye Gönder 🚀
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. SORU CEVAPLAMA EKRANI -->
+    <section id="ekran-cevapla" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">💡 Açık Sorular</h2>
+          <p class="text-xs text-slate-500">Yapabildiğin dersi seç, hazır butonlarla teklif gönder.</p>
+        </div>
+        <select id="filtreDers" onchange="sorulariGetir()" class="border border-slate-300 rounded-xl px-3 py-2 text-sm bg-slate-50 font-medium">
+          <option value="HEPSI">Tüm Dersler</option>
+          <option value="Matematik">Matematik</option>
+          <option value="Geometri">Geometri</option>
+          <option value="Türkçe / Paragraf">Türkçe / Paragraf</option>
+          <option value="Fizik">Fizik</option>
+          <option value="Kimya">Kimya</option>
+          <option value="Biyoloji">Biyoloji</option>
+          <option value="Tarih / Coğrafya">Tarih / Coğrafya</option>
+          <option value="İngilizce">İngilizce</option>
+          <option value="Programlama / Bilişim">Programlama / Bilişim</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </div>
+
+      <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl grid grid-cols-2 gap-2">
+        <input type="text" id="cevaplayanNickInput" placeholder="Senin Nickname (İsteğe bağlı)"
+          class="bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 text-xs" />
+        <input type="text" id="cevaplayanMasaInput" placeholder="Senin Masan (Örn: Masa 7)"
+          class="bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 text-xs" />
+      </div>
+
+      <div id="sorularListesi" class="space-y-4">
+        <p class="text-center text-sm text-slate-400 py-8">Sorular yükleniyor...</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="text-center text-xs text-slate-400 py-4">
+    Kütüphane Arkadaşım • Güvenli İletişim (Serbest mesajlaşma kapalıdır)
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://cvncuiwnmruhoppkizwb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_x8FJ3YgvZyxfRQNz4kiN0w_XREPYVoN';
+    let db = null;
+
+    try {
+      if (window.supabase && window.supabase.createClient) {
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (e) {
+      console.error('Supabase başlatılamadı:', e);
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const qrMasa = urlParams.get('masa');
+    if (qrMasa) {
+      document.getElementById('masaBilgisi').innerText = '📍 Masa: ' + qrMasa;
+      document.getElementById('soranMasaInput').value = qrMasa;
+      document.getElementById('cevaplayanMasaInput').value = qrMasa;
+    }
+
+    function kendiSoruIdleriniGetir() {
+      try {
+        return JSON.parse(localStorage.getItem('benim_sorularim') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function kendiSoruIdEkle(id) {
+      const liste = kendiSoruIdleriniGetir();
+      if (!liste.includes(id)) {
+        liste.unshift(id);
+        localStorage.setItem('benim_sorularim', JSON.stringify(liste));
+      }
+    }
+
+    function ekranDegistir(ekran) {
+      document.getElementById('ekran-ana').classList.add('hidden');
+      document.getElementById('ekran-sor').classList.add('hidden');
+      document.getElementById('ekran-cevapla').classList.add('hidden');
+      document.getElementById('ekran-' + ekran).classList.remove('hidden');
+
+      if (ekran === 'ana') kendiSorularimiGoster();
+      if (ekran === 'cevapla') sorulariGetir();
+    }
+
+    async function soruGonder() {
+      if (!db) {
+        alert('Supabase bağlantısı hazır değil. İnternet bağlantını kontrol et.');
+        return;
+      }
+
+      const fotoInput = document.getElementById('soruFotoInput');
+      const ders = document.getElementById('soruDersInput').value;
+      const nick = document.getElementById('soranNickInput').value.trim() || 'Anonim';
+      const masa = document.getElementById('soranMasaInput').value.trim() || 'Masa Belirtilmedi';
+      const not = document.getElementById('soruNotInput').value.trim();
+      const btn = document.getElementById('soruGonderBtn');
+
+      if (!fotoInput.files || fotoInput.files.length === 0) {
+        alert('Lütfen önce sorunun fotoğrafını çek veya seç.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Fotoğraf yükleniyor...';
+
+      try {
+        const dosya = fotoInput.files[0];
+        const uzanti = dosya.name.includes('.') ? dosya.name.split('.').pop() : 'jpg';
+        const dosyaAdi = 'soru_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7) + '.' + uzanti;
+
+        const { error: uploadError } = await db.storage
+          .from('soru-fotograflari')
+          .upload(dosyaAdi, dosya);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = db.storage
+          .from('soru-fotograflari')
+          .getPublicUrl(dosyaAdi);
+
+        const { data: kayit, error: insertError } = await db
+          .from('sorular')
+          .insert([{
+            masa_no: masa,
+            soran_nick: nick,
+            ders: ders,
+            soru_notu: not,
+            soru_foto_url: urlData.publicUrl,
+            durum: 'bekliyor'
+          }])
+          .select()
+          .single();
+        if (insertError) throw insertError;
+
+        kendiSoruIdEkle(kayit.id);
+        fotoInput.value = '';
+        document.getElementById('soruNotInput').value = '';
+        alert('Sorun eklendi! Ana ekrandan gelen teklifleri takip edebilirsin.');
+        ekranDegistir('ana');
+      } catch (err) {
+        alert('Hata oluştu: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Soruyu Kütüphaneye Gönder 🚀';
+      }
+    }
+
+    async function sorulariGetir() {
+      const filtre = document.getElementById('filtreDers').value;
+      const listeAlani = document.getElementById('sorularListesi');
+      if (!db) {
+        listeAlani.innerHTML = '<p class="text-center text-sm text-red-500 py-6">Supabase bağlantısı kurulamadı.</p>';
+        return;
+      }
+
+      listeAlani.innerHTML = '<p class="text-center text-sm text-slate-400 py-6">Yükleniyor...</p>';
+
+      let sorgu = db
+        .from('sorular')
+        .select('*')
+        .eq('durum', 'bekliyor')
+        .order('created_at', { ascending: false });
+
+      if (filtre !== 'HEPSI') {
+        sorgu = sorgu.eq('ders', filtre);
+      }
+
+      const { data: sorular, error } = await sorgu;
+      if (error) {
+        listeAlani.innerHTML = '<p class="text-center text-sm text-red-500 py-6">Sorular alınamadı: ' + error.message + '</p>';
+        return;
+      }
+
+      if (!sorular || sorular.length === 0) {
+        listeAlani.innerHTML = '<div class="bg-white p-6 rounded-2xl text-center text-sm text-slate-500">Bu kategoride şu an bekleyen soru yok.</div>';
+        return;
+      }
+
+      listeAlani.innerHTML = sorular.map(function(s) {
+        return `
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-3.5 flex items-center justify-between border-b border-slate-100">
+              <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full">${s.ders}</span>
+              <span class="text-xs text-slate-500 font-medium">${s.soran_nick} • ${s.masa_no || 'Masa yok'}</span>
+            </div>
+            <img src="${s.soru_foto_url}" alt="Soru fotoğrafı" class="w-full max-h-80 object-contain bg-slate-900" />
+            <div class="p-4 space-y-3">
+              ${s.soru_notu ? `<p class="text-sm text-slate-700 bg-slate-50 p-2.5 rounded-xl">"${s.soru_notu}"</p>` : ''}
+              <p class="text-xs font-bold text-slate-600">Soruyu çözdüysen hazır seçeneklerden birini gönder:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button onclick="teklifGonder('${s.id}', 'fotograf')"
+                  class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition">
+                  📷 Çözdüm, fotoğrafını atayım mı?
+                </button>
+                <button onclick="teklifGonder('${s.id}', 'birebir')"
+                  class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition">
+                  🗣️ Çözdüm, birebir anlatayım mı?
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function teklifGonder(soruId, tur) {
+      if (!db) return;
+      const nick = document.getElementById('cevaplayanNickInput').value.trim() || 'Gönüllü Öğrenci';
+      const masa = document.getElementById('cevaplayanMasaInput').value.trim() || 'Masa Belirtilmedi';
+
+      const { error } = await db
+        .from('sorular')
+        .update({
+          durum: 'teklif_var',
+          teklif_turu: tur,
+          cevaplayan_nick: nick,
+          cevaplayan_masa: masa
+        })
+        .eq('id', soruId);
+
+      if (error) {
+        alert('Teklif gönderilemedi: ' + error.message);
+        return;
+      }
+
+      alert('Teklifin soruyu soran kişiye iletildi! Onaylamasını bekliyoruz.');
+      sorulariGetir();
+    }
+
+    async function kendiSorularimiGoster() {
+      const ids = kendiSoruIdleriniGetir();
+      const alan = document.getElementById('benimSorularimAlani');
+      const liste = document.getElementById('benimSorularimListesi');
+
+      if (!ids || ids.length === 0 || !db) {
+        if (alan) alan.classList.add('hidden');
+        return;
+      }
+
+      const { data, error } = await db
+        .from('sorular')
+        .select('*')
+        .in('id', ids)
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) return;
+
+      alan.classList.remove('hidden');
+      liste.innerHTML = data.map(function(s) {
+        let durumKutu = '<p class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-xl font-medium">⏳ Henüz cevap teklifi gelmedi, bekleniyor...</p>';
+
+        if (s.durum === 'teklif_var') {
+          const teklifMetni = s.teklif_turu === 'fotograf'
+            ? '📷 "Soruyu çözdüm, cevabını fotoğraf olarak göndermemi ister misin?"'
+            : '🗣️ "Soruyu çözdüm, birebir anlatmamı ister misin?"';
+
+          durumKutu = `
+            <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-xl space-y-2.5">
+              <p class="text-xs font-bold text-indigo-950">${teklifMetni}</p>
+              <p class="text-[11px] text-indigo-700">Teklif: ${s.cevaplayan_nick} (${s.cevaplayan_masa})</p>
+              <div class="flex gap-2">
+                <button onclick="onayVer('${s.id}', true)" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 rounded-lg">Evet</button>
+                <button onclick="onayVer('${s.id}', false)" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2 rounded-lg">Hayır</button>
+              </div>
+            </div>
+          `;
+        } else if (s.durum === 'onaylandi') {
+          if (s.teklif_turu === 'fotograf') {
+            durumKutu = `
+              <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-2">
+                <p class="text-xs font-bold text-emerald-900">✅ Evet dedin! Çözüm fotoğrafı yüklenebilir:</p>
+                <input type="file" accept="image/*" capture="environment" onchange="cevapFotoYukle('${s.id}', this)" class="text-xs w-full" />
+              </div>
+            `;
+          } else {
+            durumKutu = `
+              <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-2">
+                <p class="text-xs font-bold text-emerald-900">✅ Birebir anlatım onaylandı!</p>
+                <p class="text-xs text-emerald-800">Yardımcı olan: <b>${s.cevaplayan_nick}</b> • Konum: <b>${s.cevaplayan_masa}</b></p>
+                <button onclick="soruyuTamamla('${s.id}')" class="bg-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Anlatım Tamamlandı</button>
+              </div>
+            `;
+          }
+        } else if (s.durum === 'cozuldu') {
+          durumKutu = `
+            <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-2">
+              <p class="text-xs font-bold text-slate-700">🎉 Soru tamamlandı (${s.cevaplayan_nick || 'Arkadaşın'})</p>
+              ${s.cevap_foto_url ? `<img src="${s.cevap_foto_url}" alt="Çözüm fotoğrafı" class="w-full max-h-64 object-contain rounded-lg bg-slate-900" />` : ''}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="bg-slate-100 text-slate-800 text-xs font-bold px-2.5 py-1 rounded-full">${s.ders}</span>
+              <span class="text-xs text-slate-400">${s.masa_no || ''}</span>
+            </div>
+            ${durumKutu}
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function onayVer(soruId, kabul) {
+      if (!db) return;
+      if (kabul) {
+        await db.from('sorular').update({ durum: 'onaylandi' }).eq('id', soruId);
+      } else {
+        await db.from('sorular').update({
+          durum: 'bekliyor',
+          teklif_turu: null,
+          cevaplayan_nick: null,
+          cevaplayan_masa: null
+        }).eq('id', soruId);
+      }
+      kendiSorularimiGoster();
+    }
+
+    async function cevapFotoYukle(soruId, inputEl) {
+      if (!db || !inputEl.files || inputEl.files.length === 0) return;
+      const dosya = inputEl.files[0];
+      const uzanti = dosya.name.includes('.') ? dosya.name.split('.').pop() : 'jpg';
+      const dosyaAdi = 'cevap_' + Date.now() + '.' + uzanti;
+
+      const { error: uploadError } = await db.storage
+        .from('soru-fotograflari')
+        .upload(dosyaAdi, dosya);
+      if (uploadError) {
+        alert('Çözüm fotoğrafı yüklenemedi: ' + uploadError.message);
+        return;
+      }
+
+      const { data: urlData } = db.storage
+        .from('soru-fotograflari')
+        .getPublicUrl(dosyaAdi);
+
+      await db
+        .from('sorular')
+        .update({ cevap_foto_url: urlData.publicUrl, durum: 'cozuldu' })
+        .eq('id', soruId);
+
+      kendiSorularimiGoster();
+    }
+
+    async function soruyuTamamla(soruId) {
+      if (!db) return;
+      await db.from('sorular').update({ durum: 'cozuldu' }).eq('id', soruId);
+      kendiSorularimiGoster();
+    }
+
+    kendiSorularimiGoster();
+  </script>
+</body>
+</html>
